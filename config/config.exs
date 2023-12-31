@@ -53,6 +53,10 @@ config :tailwind,
     cd: Path.expand("../assets", __DIR__)
   ]
 
+config :ecto_shorts,
+  repo: Exchangy.Repo,
+  error_module: EctoShorts.Actions.Error
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

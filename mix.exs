@@ -55,7 +55,8 @@ defmodule Exchangy.MixProject do
       {:mix_test_interactive, "~> 1.0", only: [:dev, :test], runtime: false},
       {:faker, "~> 0.17", only: [:dev, :test]},
       {:ex_machina, "~> 2.7", only: [:dev, :test]},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:ecto_shorts, "~> 2.3"}
     ]
   end
 
