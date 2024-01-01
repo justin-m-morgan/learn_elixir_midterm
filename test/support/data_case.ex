@@ -16,6 +16,8 @@ defmodule Exchangy.DataCase do
 
   use ExUnit.CaseTemplate
 
+  alias Ecto.Adapters.SQL.Sandbox
+
   using do
     quote do
       alias Exchangy.Repo
@@ -24,6 +26,7 @@ defmodule Exchangy.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Exchangy.DataCase
+      import Exchangy.Factory
     end
   end
 
@@ -36,8 +39,8 @@ defmodule Exchangy.DataCase do
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Exchangy.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    pid = Sandbox.start_owner!(Exchangy.Repo, shared: not tags[:async])
+    on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 
   @doc """
@@ -53,6 +56,20 @@ defmodule Exchangy.DataCase do
       Regex.replace(~r"%{(\w+)}", message, fn _, key ->
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
+    end)
+  end
+
+  @doc """
+  A helper to compare Ecto structs by their primary fields (ignoring associations) 
+  """
+  def ecto_schema_primary_fields_equal?(struct1, struct2) do
+    schema_module = struct1.__struct__
+
+    schema_module.__schema__(:fields)
+    |> Enum.each(fn field ->
+      assert Map.get(struct1, field) ==
+               Map.get(struct2, field),
+             "Expected #{inspect(Map.get(struct1, field))} to equal #{inspect(Map.get(struct2, field))}"
     end)
   end
 end
