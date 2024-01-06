@@ -27,13 +27,18 @@ defmodule Exchangy.Wallets.Wallet do
   def changeset(wallet, attrs, :balance_change) do
     wallet
     |> change()
-    |> put_change(:balance, Money.add(wallet.balance, attrs.balance_change))
+    |> put_change(:balance, combine_balance_with_change(wallet, attrs.balance_change))
     |> validate_change(:balance, fn :balance, balance ->
-      if balance < Money.new(0, balance.currency) do
-        [balance: "Balance cannot be negative"]
-      else
-        []
-      end
+      if Money.negative?(balance),
+        do: [balance: "Balance cannot be negative"],
+        else: []
     end)
+  end
+
+  defp combine_balance_with_change(wallet, balance_change) do
+    case Money.add(wallet.balance, balance_change) do
+      {:ok, new_balance} -> new_balance
+      error -> error
+    end
   end
 end

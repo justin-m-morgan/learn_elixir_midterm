@@ -7,7 +7,7 @@ defmodule Exchangy.WalletFactories do
       def wallet_factory do
         %Wallet{
           currency_code: :CAD,
-          balance: Money.new(42, :CAD)
+          balance: Money.new(:CAD, 42)
         }
       end
     end

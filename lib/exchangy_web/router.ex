@@ -14,6 +14,13 @@ defmodule ExchangyWeb.Router do
     plug :accepts, ["json"]
   end
 
+  forward "/gql", Absinthe.Plug, schema: ExchangyWeb.Gql.Schema
+
+  forward "/graphiql",
+          Absinthe.Plug.GraphiQL,
+          schema: ExchangyWeb.Gql.Schema,
+          interface: :playground
+
   scope "/", ExchangyWeb do
     pipe_through :browser
 

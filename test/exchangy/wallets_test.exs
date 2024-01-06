@@ -11,7 +11,7 @@ defmodule Exchangy.WalletsTest do
     end
 
     test "with valid data creates a wallet", %{user: user} do
-      set_balance = Money.new(42, :CAD)
+      set_balance = Money.new(:CAD, 42)
       valid_attrs = %{balance: set_balance, currency_code: :CAD, owner_id: user.id}
 
       assert {:ok, %Wallet{} = wallet} = Wallets.create_wallet(valid_attrs)
@@ -33,7 +33,7 @@ defmodule Exchangy.WalletsTest do
       for owner <- owners, currency_code <- currencies do
         insert(:wallet,
           currency_code: currency_code,
-          balance: Money.new(Enum.random(1..100), currency_code),
+          balance: Money.new(currency_code, Enum.random(1..100)),
           owner: owner
         )
       end
@@ -91,7 +91,7 @@ defmodule Exchangy.WalletsTest do
       add_amount = Money.new(1, wallet.currency_code)
 
       assert {:ok, %Wallet{} = wallet} = Wallets.update_wallet_balance(wallet, add_amount)
-      assert wallet.balance == Money.add(starting_balance, add_amount)
+      assert wallet.balance == Money.add!(starting_balance, add_amount)
     end
 
     test "allows subtracting currency of same type", %{wallet: wallet} do
@@ -99,12 +99,18 @@ defmodule Exchangy.WalletsTest do
       subtract_amount = Money.new(-1, wallet.currency_code)
 
       assert {:ok, %Wallet{} = wallet} = Wallets.update_wallet_balance(wallet, subtract_amount)
-      assert wallet.balance == Money.add(starting_balance, subtract_amount)
+      assert wallet.balance == Money.add!(starting_balance, subtract_amount)
     end
 
     test "does not allow subtracting more than the balance", %{wallet: wallet} do
       starting_balance = wallet.balance
-      exceeding_subtract_amount = Money.new(-starting_balance.amount - 1, wallet.currency_code)
+
+      subtract_amount =
+        starting_balance.amount
+        |> Decimal.add(Decimal.new(1))
+        |> Decimal.mult(Decimal.new(-1))
+
+      exceeding_subtract_amount = Money.new(wallet.currency_code, subtract_amount)
 
       assert {:error, %Ecto.Changeset{}} =
                Wallets.update_wallet_balance(wallet, exceeding_subtract_amount)
@@ -112,11 +118,10 @@ defmodule Exchangy.WalletsTest do
 
     test "errors if mismatched currency" do
       wallet = insert(:wallet, owner: build(:user), currency_code: :CAD)
-      add_amount = Money.new(1, :USD)
+      add_amount = Money.new!(1, :USD)
 
-      assert_raise ArgumentError, fn ->
-        Wallets.update_wallet_balance(wallet, add_amount)
-      end
+      assert {:error, :currency_mismatch} =
+               Wallets.update_wallet_balance(wallet, add_amount)
     end
   end
 end

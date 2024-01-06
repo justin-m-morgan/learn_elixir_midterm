@@ -51,8 +51,11 @@ defmodule Exchangy.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:plug_cowboy, "~> 2.5"},
-      {:money, "~> 1.12"},
-      # Dev/Test 
+      {:ex_money, "~> 5.0"},
+      {:ex_money_sql, "~> 1.0"},
+      {:absinthe, "~> 1.7"},
+      {:absinthe_plug, "~> 1.5"},
+      # Dev/Test
       {:mix_test_interactive, "~> 1.0", only: [:dev, :test], runtime: false},
       {:faker, "~> 0.17", only: [:dev, :test]},
       {:ex_machina, "~> 2.7", only: [:dev, :test]},

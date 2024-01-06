@@ -68,6 +68,10 @@ defmodule Exchangy.Wallets do
       {:error, %Ecto.Changeset{}}
 
   """
+  def update_wallet_balance(%Wallet{} = wallet, balance_change)
+      when wallet.balance.currency != balance_change.currency,
+      do: {:error, :currency_mismatch}
+
   def update_wallet_balance(%Wallet{} = wallet, balance_change) do
     wallet
     |> Wallet.changeset(%{balance_change: balance_change}, :balance_change)

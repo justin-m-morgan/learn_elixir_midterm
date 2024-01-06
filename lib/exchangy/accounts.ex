@@ -27,12 +27,12 @@ defmodule Exchangy.Accounts do
   ## Examples
 
       iex> get_user(123)
-      {:ok, %User{}}
+      %User{}
 
       iex> get_user(456)
       nil
   """
-  def get_user(id, opts \\ %{}), do: Actions.find(User, Map.put(opts, :id, id))
+  def get_user(id, opts \\ []), do: Actions.get(User, id, opts)
 
   @doc """
   Creates a user.
