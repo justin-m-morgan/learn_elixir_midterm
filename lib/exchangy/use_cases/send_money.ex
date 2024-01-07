@@ -6,8 +6,7 @@ defmodule Exchangy.UseCases.SendMoney do
   alias Exchangy.Wallets
 
   def new(from_wallet_owner_id, to_wallet_owner_id, amount, to_currency) do
-    with %Wallets.Wallet{} = from_wallet <-
-           Wallets.find_wallet(%{owner_id: from_wallet_owner_id}),
+    with %Wallets.Wallet{} = from_wallet <- Wallets.find_wallet(%{owner_id: from_wallet_owner_id}),
          %Wallets.Wallet{} = to_wallet <- Wallets.find_wallet(%{owner_id: to_wallet_owner_id}) do
       debit_amount = Money.mult(amount, -1)
       credit_amount = convert_currency(amount, to_currency)

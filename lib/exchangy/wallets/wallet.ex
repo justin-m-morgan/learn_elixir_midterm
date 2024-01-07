@@ -24,28 +24,30 @@ defmodule Exchangy.Wallets.Wallet do
     |> validate_required([:currency_code, :balance, :owner_id])
   end
 
-  def changeset(wallet, attrs, :balance_change) do
-    IO.inspect(attrs)
+  def changeset(wallet, %{balance_change: balance_change}, :balance_change) do
     wallet
-    |> change()
-    |> validate_change(:currency_code, fn :currency_code, currency_code ->
-      IO.inspect(currency_code, label: "currency_code")
-      if currency_code == attrs.balance_change.currency_code,
-        do: [],
-        else: [currency_code: "Currency code must match the wallet's currency code"]
-    end)
-    |> put_change(:balance, combine_balance_with_change(wallet, attrs.balance_change))
-    |> validate_change(:balance, fn :balance, balance ->
+    |> maybe_cast_new_balance(balance_change)
+    |> validate_positive_balance()
+  end
+
+  defp validate_positive_balance(changeset) do
+    validate_change(changeset, :balance, fn :balance, balance ->
       if Money.negative?(balance),
-        do: [balance: "Balance cannot be negative"] |> IO.inspect(label: "error"),
-        else: [] |> IO.inspect(label: "ok")
+        do: [balance: "Balance cannot be negative"],
+        else: []
     end)
   end
 
-  defp combine_balance_with_change(wallet, balance_change) do
+  defp maybe_cast_new_balance(wallet, balance_change) do
     case Money.add(wallet.balance, balance_change) do
-      {:ok, new_balance} -> new_balance
-      _error -> wallet.balance
+      {:ok, new_balance} ->
+        wallet
+        |> cast(%{balance: new_balance}, [:balance])
+
+      _error ->
+        wallet
+        |> change()
+        |> add_error(:currency_code, "Currency codes must match")
     end
   end
 end

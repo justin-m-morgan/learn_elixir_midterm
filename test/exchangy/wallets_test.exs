@@ -36,12 +36,12 @@ defmodule Exchangy.WalletsTest do
       assert ecto_schema_primary_fields_equal?(found_wallet, wallet)
     end
 
-    test "returns nil if no wallet is found", %{wallet: wallet} do
+    test "returns nil if no wallet is found" do
       assert {:error, %ErrorMessage{} = error} = Wallets.find_wallet(%{id: 0})
       assert error.code == :not_found
     end
 
-    test "returns nil if no parameters are given", %{wallet: wallet} do
+    test "returns nil if no parameters are given" do
       assert {:error, %ErrorMessage{} = error} = Wallets.find_wallet(%{})
       assert error.code == :not_found
     end
@@ -160,7 +160,6 @@ defmodule Exchangy.WalletsTest do
       add_amount = Money.new!(mismatch_currency, 1)
 
       assert %Ecto.Changeset{valid?: false} =
-               changeset =
                Wallets.update_wallet_balance(wallet, add_amount)
     end
   end
