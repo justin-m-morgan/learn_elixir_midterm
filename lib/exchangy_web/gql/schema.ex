@@ -11,8 +11,8 @@ defmodule ExchangyWeb.Gql.Schema do
   import_types(ExchangyWeb.Gql.Wallet.Queries)
 
   # Mutations
-  import_types(ExchangyWeb.Gql.User.Mutations) 
-  import_types(ExchangyWeb.Gql.Wallets.Mutations) 
+  import_types(ExchangyWeb.Gql.User.Mutations)
+  import_types(ExchangyWeb.Gql.Wallets.Mutations)
 
   query do
     import_fields(:user_queries)

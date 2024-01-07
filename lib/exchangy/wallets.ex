@@ -3,10 +3,8 @@ defmodule Exchangy.Wallets do
   The Wallets context.
   """
 
-  import Ecto.Query, warn: false
-  alias Exchangy.Repo
-
   alias EctoShorts.Actions
+  alias Exchangy.Repo
   alias Exchangy.Wallets.Wallet
 
   @doc """
@@ -28,14 +26,30 @@ defmodule Exchangy.Wallets do
 
   ## Examples
 
-      iex> get_wallet!(123)
+      iex> get_wallet(123)
       %Wallet{}
 
-      iex> get_wallet!(456)
+      iex> get_wallet(456)
       nil
   """
   def get_wallet(id, opts \\ []) do
     Actions.get(Wallet, id, opts)
+  end
+
+  @doc """
+  Find a wallet by given parameters.
+
+  ## Examples
+
+      iex> find_wallet(%{owner_id: value})
+      %Wallet{}
+
+      iex> find_wallet(%{currency_code: :KLI})
+      nil
+
+  """
+  def find_wallet(params) do
+    Actions.find(Wallet, params)
   end
 
   @doc """
@@ -61,20 +75,14 @@ defmodule Exchangy.Wallets do
 
   ## Examples
 
-      iex> update_wallet(wallet, %{field: new_value})
+      iex> update_wallet(wallet, %Money.new(:CAD, 100))
       {:ok, %Wallet{}}
 
-      iex> update_wallet(wallet, %{field: bad_value})
+      iex> update_wallet(wallet, %Money.new(:KLI, -1_000_000)
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_wallet_balance(%Wallet{} = wallet, balance_change)
-      when wallet.balance.currency != balance_change.currency,
-      do: {:error, :currency_mismatch}
-
   def update_wallet_balance(%Wallet{} = wallet, balance_change) do
-    wallet
-    |> Wallet.changeset(%{balance_change: balance_change}, :balance_change)
-    |> Repo.update()
+    Wallet.changeset(wallet, %{balance_change: balance_change}, :balance_change)
   end
 end

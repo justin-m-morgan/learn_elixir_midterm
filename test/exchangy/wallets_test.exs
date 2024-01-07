@@ -25,6 +25,28 @@ defmodule Exchangy.WalletsTest do
     end
   end
 
+  describe "find_wallet/1" do
+    setup do
+      wallet = insert(:wallet, owner: build(:user))
+      %{wallet: wallet}
+    end
+
+    test "finds a wallet by given parameters", %{wallet: wallet} do
+      assert {:ok, %Wallet{} = found_wallet} = Wallets.find_wallet(%{id: wallet.id})
+      assert ecto_schema_primary_fields_equal?(found_wallet, wallet)
+    end
+
+    test "returns nil if no wallet is found", %{wallet: wallet} do
+      assert {:error, %ErrorMessage{} = error} = Wallets.find_wallet(%{id: 0})
+      assert error.code == :not_found
+    end
+
+    test "returns nil if no parameters are given", %{wallet: wallet} do
+      assert {:error, %ErrorMessage{} = error} = Wallets.find_wallet(%{})
+      assert error.code == :not_found
+    end
+  end
+
   describe "list_wallets/1" do
     setup do
       currencies = [:CAD, :USD, :EUR, :GBP]
@@ -82,15 +104,26 @@ defmodule Exchangy.WalletsTest do
 
   describe "update_wallet_balance/2" do
     setup do
-      wallet = insert(:wallet, owner: build(:user))
-      %{wallet: wallet}
+      currency_code = :CAD
+      initial_balance = Money.new(currency_code, 1_000)
+
+      wallet =
+        insert(:wallet,
+          currency_code: currency_code,
+          balance: initial_balance,
+          owner: build(:user)
+        )
+
+      %{wallet: wallet, currency_code: currency_code}
     end
 
     test "allows adding currency of same type", %{wallet: wallet} do
       starting_balance = wallet.balance
       add_amount = Money.new(1, wallet.currency_code)
 
-      assert {:ok, %Wallet{} = wallet} = Wallets.update_wallet_balance(wallet, add_amount)
+      changeset = Wallets.update_wallet_balance(wallet, add_amount)
+      assert changeset.valid?
+      assert {:ok, wallet} = Repo.update(changeset)
       assert wallet.balance == Money.add!(starting_balance, add_amount)
     end
 
@@ -98,7 +131,9 @@ defmodule Exchangy.WalletsTest do
       starting_balance = wallet.balance
       subtract_amount = Money.new(-1, wallet.currency_code)
 
-      assert {:ok, %Wallet{} = wallet} = Wallets.update_wallet_balance(wallet, subtract_amount)
+      changeset = Wallets.update_wallet_balance(wallet, subtract_amount)
+      assert changeset.valid?
+      assert {:ok, %Wallet{} = wallet} = Repo.update(changeset)
       assert wallet.balance == Money.add!(starting_balance, subtract_amount)
     end
 
@@ -112,15 +147,20 @@ defmodule Exchangy.WalletsTest do
 
       exceeding_subtract_amount = Money.new(wallet.currency_code, subtract_amount)
 
-      assert {:error, %Ecto.Changeset{}} =
-               Wallets.update_wallet_balance(wallet, exceeding_subtract_amount)
+      changeset =
+        Wallets.update_wallet_balance(wallet, exceeding_subtract_amount)
+
+      refute changeset.valid?
+      assert Keyword.has_key?(changeset.errors, :balance)
     end
 
-    test "errors if mismatched currency" do
-      wallet = insert(:wallet, owner: build(:user), currency_code: :CAD)
-      add_amount = Money.new!(1, :USD)
+    test "errors if mismatched currency", %{wallet: wallet} do
+      mismatch_currency = :USD
+      assert mismatch_currency != wallet.currency_code
+      add_amount = Money.new!(mismatch_currency, 1)
 
-      assert {:error, :currency_mismatch} =
+      assert %Ecto.Changeset{valid?: false} =
+               changeset =
                Wallets.update_wallet_balance(wallet, add_amount)
     end
   end
