@@ -6,5 +6,6 @@ defmodule Exchangy.Factory do
   use ExMachina.Ecto, repo: Exchangy.Repo
 
   use Exchangy.UserFactories
+  use Exchangy.TransactionFactories
   use Exchangy.WalletFactories
 end

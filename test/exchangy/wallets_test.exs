@@ -31,8 +31,13 @@ defmodule Exchangy.WalletsTest do
       %{wallet: wallet}
     end
 
-    test "finds a wallet by given parameters", %{wallet: wallet} do
+    test "finds a wallet by id", %{wallet: wallet} do
       assert {:ok, %Wallet{} = found_wallet} = Wallets.find_wallet(%{id: wallet.id})
+      assert ecto_schema_primary_fields_equal?(found_wallet, wallet)
+    end
+
+    test "finds a wallet by owner_id", %{wallet: wallet} do
+      assert {:ok, %Wallet{} = found_wallet} = Wallets.find_wallet(%{owner_id: wallet.owner_id})
       assert ecto_schema_primary_fields_equal?(found_wallet, wallet)
     end
 
